@@ -5,7 +5,9 @@ import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import roboguice.activity.RoboActivity;
+
+import org.json.JSONArray;
+
 import roboguice.inject.ContentView;
 import roboguice.inject.InjectResource;
 import roboguice.inject.InjectView;
@@ -14,11 +16,14 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import com.koushikdutta.async.http.socketio.Acknowledge;
+import com.koushikdutta.async.http.socketio.EventCallback;
 
 @ContentView(R.layout.pattern_layout)
-public class PatternActivity extends RoboActivity {
+public class PatternActivity extends SwanRoboActivity {
 
 	@InjectView(R.id.red)
 	Button redButton;
@@ -41,7 +46,7 @@ public class PatternActivity extends RoboActivity {
 	List<String> pattern = Lists.newArrayList();
 	
 	@Inject
-	PatternIO patternIO;
+	SocketIOState socketIO;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +55,15 @@ public class PatternActivity extends RoboActivity {
 		redButton.setOnClickListener(new UpdatePatternOnClickListener(red));
 		greenButton.setOnClickListener(new UpdatePatternOnClickListener(green));
 		blueButton.setOnClickListener(new UpdatePatternOnClickListener(blue));
+		socketIO.getClient().on("PATTERN_REQUESTED_FROM_CLIENT", new EventCallback() {
+			
+			@Override
+			public void onEvent(JSONArray args, Acknowledge ack) {
+				setButtonEnables(true);
+				setPattern((List<String>)args.opt(0));
+			}
+		});
+		socketIO.getClient().emitEvent("PATTERN_REQUESTED_FROM_SERVER");
 	}
 
 	@Override
@@ -70,28 +84,28 @@ public class PatternActivity extends RoboActivity {
 
 		final String patternString;
 		
+		public final static String PATTERN_ENTERED = "PATTERN_ENTERED";
+		
+		// TODO: this code is super non-modular...
+		// TODO: can try using acknowledges and doing server side validation so other users can watch the pattern as you input it
+		
 		@Override
 		public void onClick(View v) {
 			final List<String> pattern = getPattern();
 			if (pattern.isEmpty()) {
-				patternIO.sendPatternSuccess(patternString);
+				socketIO.getClient().emit(PATTERN_ENTERED, new JSONArray().put(ImmutableMap.of("Valid", true, "Extension", patternString)));
 				setButtonEnables(false);
 			} else {
 				final String nextPatternElement = pattern.get(0);
 				if (patternString.equals(nextPatternElement)) {
 					pattern.remove(0); //pop
 				} else {
-					patternIO.sendPatternFail();
+					socketIO.getClient().emit(PATTERN_ENTERED, new JSONArray().put(ImmutableMap.of("Valid", false)));
 				}
 			}
 			
 		}
 		
-	}
-
-	public void handlePattern(List<String> pattern) {
-		setPattern(pattern);
-		setButtonEnables(true);
 	}
 
 }

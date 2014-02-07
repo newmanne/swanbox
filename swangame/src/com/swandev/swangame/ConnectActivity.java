@@ -1,11 +1,10 @@
 package com.swandev.swangame;
 
-import java.net.MalformedURLException;
-
-import roboguice.activity.RoboActivity;
 import roboguice.inject.ContentView;
 import roboguice.inject.InjectView;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -14,9 +13,12 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.inject.Inject;
+import com.koushikdutta.async.http.AsyncHttpClient;
+import com.koushikdutta.async.http.socketio.ConnectCallback;
+import com.koushikdutta.async.http.socketio.SocketIOClient;
 
 @ContentView(R.layout.connect_screen)
-public class ConnectActivity extends RoboActivity {
+public class ConnectActivity extends SwanRoboActivity {
 
 	@InjectView(R.id.connectButton)
 	Button connectButton;
@@ -36,18 +38,31 @@ public class ConnectActivity extends RoboActivity {
 			public void onClick(View v) {
 				connectButton.setEnabled(false);
 				final String serverAddress = ipAddressField.getText().toString();
-				try {
-					socketIO.connect(serverAddress);
-				} catch (MalformedURLException e) {
-					SwanUtils.toastOnUI(ConnectActivity.this, "Malformed server address " + serverAddress, Toast.LENGTH_LONG);
-					connectButton.setEnabled(true);
-				}
+				SocketIOClient.connect(AsyncHttpClient.getDefaultInstance(), serverAddress, new ConnectCallback() {
+					@Override
+					public void onConnectCompleted(Exception ex, SocketIOClient client) {
+						if (ex != null) {
+							Log.e(LogTags.SOCKIT_IO, "Connection error", ex);
+							SwanUtils.toastOnUI(ConnectActivity.this, ex.toString(), Toast.LENGTH_LONG);
+							connectButton.setEnabled(true);
+							return;
+						}
+						Log.d(LogTags.SOCKIT_IO, "Connected to " + serverAddress);
+						socketIO.setClient(client);
+						socketIO.init();
+						startActivityForResult(new Intent(ConnectActivity.this, PatternActivity.class), 0);
+					}
+				});
 			}
 		});
 	}
 	
-	public void reenableConnectButton() {
-		connectButton.setEnabled(true);
+	@Override
+	protected void onResume() {
+		super.onResume();
+		if (!socketIO.isConnected()) {
+			connectButton.setEnabled(true);
+		}
 	}
 
 	@Override
