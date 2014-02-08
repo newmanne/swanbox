@@ -10,5 +10,8 @@
     <string name="green">GREEN</string>
     <string name="ipAddress">IP ADDRESS OF SERVER</string>
     <string name="connect">CONNECT</string>
+    <string name="nickname">NICKNAME</string>
+    <string name="defaultNickname">blinky</string>  
+    <string name="startGame">Start Game</string>  
 
 </resources>

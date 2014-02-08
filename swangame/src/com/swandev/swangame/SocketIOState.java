@@ -1,29 +1,48 @@
 package com.swandev.swangame;
 
 import lombok.Getter;
-import lombok.Setter;
+
+import org.json.JSONArray;
+
 import android.content.Intent;
 import android.util.Log;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.koushikdutta.async.http.socketio.Acknowledge;
 import com.koushikdutta.async.http.socketio.DisconnectCallback;
+import com.koushikdutta.async.http.socketio.EventCallback;
 import com.koushikdutta.async.http.socketio.SocketIOClient;
 
 @Singleton
 public class SocketIOState {
 
 	@Getter
-	@Setter
 	SocketIOClient client;
 
 	@Inject
 	ActivityProvider activityProvider;
 
-	public void init() {
+	@Getter
+	private boolean host = false;
+
+	public void init(SocketIOClient client, String nickname) {
+		this.client = client;
+		client.on(SocketIOEvents.ELECTED_HOST, new EventCallback() {
+
+			@Override
+			public void onEvent(JSONArray args, Acknowledge ack) {
+				host = true;
+				Log.d(LogTags.SOCKET_IO, "Elected host");
+				activityProvider.getActivity().onElectedHost();
+			}
+
+		});
+		// Emit a nickname event
+		client.emit(SocketIOEvents.NICKNAME_SET, new JSONArray().put(nickname));
 		// Return to the connect screen on a disconnect
-		getClient().setDisconnectCallback(new DisconnectCallback() {
-			
+		client.setDisconnectCallback(new DisconnectCallback() {
+
 			@Override
 			public void onDisconnect(Exception ex) {
 				Log.d(LogTags.SOCKET_IO, "Disconnected");
@@ -33,7 +52,7 @@ public class SocketIOState {
 			}
 		});
 	}
-	
+
 	public boolean isConnected() {
 		return getClient() != null && getClient().isConnected();
 	}

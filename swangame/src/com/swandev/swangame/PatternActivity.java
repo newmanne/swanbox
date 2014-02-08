@@ -19,8 +19,6 @@ import android.widget.Button;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.koushikdutta.async.http.socketio.Acknowledge;
-import com.koushikdutta.async.http.socketio.EventCallback;
 
 @ContentView(R.layout.pattern_layout)
 public class PatternActivity extends SwanRoboActivity {
@@ -37,14 +35,16 @@ public class PatternActivity extends SwanRoboActivity {
 	Button blueButton;
 	@InjectResource(R.string.blue)
 	String blue;
-	
+	@InjectView(R.id.startGame)
+	Button startGame;
+
 	@Getter
 	List<Button> patternButtons;
-	
+
 	@Getter
 	@Setter
 	List<String> pattern = Lists.newArrayList();
-	
+
 	@Inject
 	SocketIOState socketIO;
 
@@ -55,19 +55,19 @@ public class PatternActivity extends SwanRoboActivity {
 		redButton.setOnClickListener(new UpdatePatternOnClickListener(red));
 		greenButton.setOnClickListener(new UpdatePatternOnClickListener(green));
 		blueButton.setOnClickListener(new UpdatePatternOnClickListener(blue));
-		
+
 		patternButtons = Lists.newArrayList(redButton, greenButton, blueButton);
-		
-		socketIO.getClient().on("PATTERN_REQUESTED_FROM_CLIENT", new EventCallback() {
-			
+
+/*		socketIO.getClient().on("PATTERN_REQUESTED_FROM_CLIENT", new EventCallback() {
+
 			@Override
 			public void onEvent(JSONArray args, Acknowledge ack) {
 				setButtonEnables(true);
-				setPattern((List<String>)args.opt(0));
+				setPattern((List<String>) args.opt(0));
 			}
 		});
 		socketIO.getClient().emitEvent("PATTERN_REQUESTED_FROM_SERVER");
-	}
+*/	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -75,23 +75,24 @@ public class PatternActivity extends SwanRoboActivity {
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
-	
+
 	protected void setButtonEnables(boolean status) {
 		for (Button button : getPatternButtons()) {
 			button.setEnabled(status);
 		}
 	}
-	
-	@RequiredArgsConstructor(suppressConstructorProperties=true)
+
+	@RequiredArgsConstructor(suppressConstructorProperties = true)
 	public class UpdatePatternOnClickListener implements View.OnClickListener {
 
 		final String patternString;
-		
+
 		public final static String PATTERN_ENTERED = "PATTERN_ENTERED";
-		
+
 		// TODO: this code is super non-modular...
-		// TODO: can try using acknowledges and doing server side validation so other users can watch the pattern as you input it
-		
+		// TODO: can try using acknowledges and doing server side validation so
+		// other users can watch the pattern as you input it
+
 		@Override
 		public void onClick(View v) {
 			final List<String> pattern = getPattern();
@@ -101,15 +102,20 @@ public class PatternActivity extends SwanRoboActivity {
 			} else {
 				final String nextPatternElement = pattern.get(0);
 				if (patternString.equals(nextPatternElement)) {
-					pattern.remove(0); //pop
+					pattern.remove(0); // pop
 				} else {
 					socketIO.getClient().emit(PATTERN_ENTERED, new JSONArray().put(ImmutableMap.of("Valid", false)));
 					setButtonEnables(false);
 				}
 			}
-			
+
 		}
-		
+
+	}
+	
+	@Override
+	protected void onElectedHost() {
+		startGame.setVisibility(View.VISIBLE);
 	}
 
 }

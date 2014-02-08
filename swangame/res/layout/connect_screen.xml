@@ -10,17 +10,32 @@
         android:text="@string/ipAddress" />
 
     <EditText
+        android:inputType="text"
         android:id="@+id/ipAddress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/ipAddressLabel" />
 
+    <TextView
+        android:id="@+id/nicknameLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ipAddress"
+        android:text="@string/nickname" />
+
+    <EditText
+        android:text="@string/defaultNickname"
+        android:inputType="text"
+        android:id="@+id/nickname"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/nicknameLabel" />
+
     <Button
         android:id="@+id/connectButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/ipAddress"
-        android:text="@string/connect"
-         />
+        android:layout_below="@+id/nickname"
+        android:text="@string/connect" />
 
 </RelativeLayout>

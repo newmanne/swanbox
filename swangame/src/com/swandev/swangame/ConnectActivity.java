@@ -25,6 +25,10 @@ public class ConnectActivity extends SwanRoboActivity {
 
 	@InjectView(R.id.ipAddress)
 	EditText ipAddressField;
+	
+	@InjectView(R.id.nickname)
+	EditText nicknameField;
+
 
 	@Inject
 	SocketIOState socketIO;
@@ -36,8 +40,11 @@ public class ConnectActivity extends SwanRoboActivity {
 
 			@Override
 			public void onClick(View v) {
+				// TODO: validate malformed url
+				// TODO: validate nickname not blank
 				connectButton.setEnabled(false);
 				final String serverAddress = ipAddressField.getText().toString();
+				final String nickname = nicknameField.getText().toString();
 				SocketIOClient.connect(AsyncHttpClient.getDefaultInstance(), serverAddress, new ConnectCallback() {
 					@Override
 					public void onConnectCompleted(Exception ex, SocketIOClient client) {
@@ -48,8 +55,7 @@ public class ConnectActivity extends SwanRoboActivity {
 							return;
 						}
 						Log.d(LogTags.SOCKET_IO, "Connected to " + serverAddress);
-						socketIO.setClient(client);
-						socketIO.init();
+						socketIO.init(client, nickname);
 						startActivityForResult(new Intent(ConnectActivity.this, PatternActivity.class), 0);
 					}
 				});
