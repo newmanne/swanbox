@@ -38,21 +38,21 @@ public class ConnectActivity extends SwanRoboActivity {
 			public void onClick(View v) {
 				connectButton.setEnabled(false);
 				final String serverAddress = ipAddressField.getText().toString();
-				SocketIOClient.connect(AsyncHttpClient.getDefaultInstance(), serverAddress, new ConnectCallback() {
-					@Override
-					public void onConnectCompleted(Exception ex, SocketIOClient client) {
-						if (ex != null) {
-							Log.e(LogTags.SOCKET_IO, "Connection error", ex);
-							SwanUtils.toastOnUI(ConnectActivity.this, ex.toString(), Toast.LENGTH_LONG);
-							connectButton.setEnabled(true);
-							return;
-						}
-						Log.d(LogTags.SOCKET_IO, "Connected to " + serverAddress);
-						socketIO.setClient(client);
-						socketIO.init();
+//				SocketIOClient.connect(AsyncHttpClient.getDefaultInstance(), serverAddress, new ConnectCallback() {
+//					@Override
+//					public void onConnectCompleted(Exception ex, SocketIOClient client) {
+//						if (ex != null) {
+//							Log.e(LogTags.SOCKET_IO, "Connection error", ex);
+//							SwanUtils.toastOnUI(ConnectActivity.this, ex.toString(), Toast.LENGTH_LONG);
+//							connectButton.setEnabled(true);
+//							return;
+//						}
+//						Log.d(LogTags.SOCKET_IO, "Connected to " + serverAddress);
+//						socketIO.setClient(client);
+//						socketIO.init();
 						startActivityForResult(new Intent(ConnectActivity.this, PatternActivity.class), 0);
-					}
-				});
+//					}
+//				});
 			}
 		});
 	}

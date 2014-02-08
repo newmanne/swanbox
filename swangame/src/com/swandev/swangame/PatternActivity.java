@@ -5,22 +5,18 @@ import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-
-import org.json.JSONArray;
-
 import roboguice.inject.ContentView;
 import roboguice.inject.InjectResource;
 import roboguice.inject.InjectView;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.koushikdutta.async.http.socketio.Acknowledge;
-import com.koushikdutta.async.http.socketio.EventCallback;
 
 @ContentView(R.layout.pattern_layout)
 public class PatternActivity extends SwanRoboActivity {
@@ -37,6 +33,17 @@ public class PatternActivity extends SwanRoboActivity {
 	Button blueButton;
 	@InjectResource(R.string.blue)
 	String blue;
+	
+	@InjectView(R.id.clear)
+	Button clearButton;
+	
+	@Getter
+	@InjectView(R.id.history_list)
+	ListView history_list;
+	
+	@Getter
+	@Setter
+	List<String> history = Lists.newArrayList();
 	
 	@Getter
 	List<Button> patternButtons;
@@ -55,18 +62,19 @@ public class PatternActivity extends SwanRoboActivity {
 		redButton.setOnClickListener(new UpdatePatternOnClickListener(red));
 		greenButton.setOnClickListener(new UpdatePatternOnClickListener(green));
 		blueButton.setOnClickListener(new UpdatePatternOnClickListener(blue));
-		
+		clearButton.setOnClickListener(new ClearHistoryOnClickListener());
 		patternButtons = Lists.newArrayList(redButton, greenButton, blueButton);
 		
-		socketIO.getClient().on("PATTERN_REQUESTED_FROM_CLIENT", new EventCallback() {
-			
-			@Override
-			public void onEvent(JSONArray args, Acknowledge ack) {
-				setButtonEnables(true);
-				setPattern((List<String>)args.opt(0));
-			}
-		});
-		socketIO.getClient().emitEvent("PATTERN_REQUESTED_FROM_SERVER");
+		setButtonEnables(true);
+//		socketIO.getClient().on("PATTERN_REQUESTED_FROM_CLIENT", new EventCallback() {
+//			
+//			@Override
+//			public void onEvent(JSONArray args, Acknowledge ack) {
+//				setButtonEnables(true);
+//				setPattern((List<String>)args.opt(0));
+//			}
+//		});
+//		socketIO.getClient().emitEvent("PATTERN_REQUESTED_FROM_SERVER");
 	}
 
 	@Override
@@ -94,19 +102,41 @@ public class PatternActivity extends SwanRoboActivity {
 		
 		@Override
 		public void onClick(View v) {
-			final List<String> pattern = getPattern();
-			if (pattern.isEmpty()) {
-				socketIO.getClient().emit(PATTERN_ENTERED, new JSONArray().put(ImmutableMap.of("Valid", true, "Extension", patternString)));
-				setButtonEnables(false);
-			} else {
-				final String nextPatternElement = pattern.get(0);
-				if (patternString.equals(nextPatternElement)) {
-					pattern.remove(0); //pop
-				} else {
-					socketIO.getClient().emit(PATTERN_ENTERED, new JSONArray().put(ImmutableMap.of("Valid", false)));
-					setButtonEnables(false);
-				}
-			}
+			final List<String> history = getHistory();
+			history.add(patternString);
+			
+			// Define a new Adapter
+            // First parameter - Context
+            // Second parameter - Layout for the row
+            // Third parameter - ID of the TextView to which the data is written
+            // Forth - the Array of data
+			
+			SwanUtils.updateListViewWithList(PatternActivity.this, getHistory_list(), history);
+			
+//			if (pattern.isEmpty()) {
+//				socketIO.getClient().emit(PATTERN_ENTERED, new JSONArray().put(ImmutableMap.of("Valid", true, "Extension", patternString)));
+//				setButtonEnables(false);
+//			} else {
+//				final String nextPatternElement = pattern.get(0);
+//				if (patternString.equals(nextPatternElement)) {
+//					pattern.remove(0); //pop
+//				} else {
+//					socketIO.getClient().emit(PATTERN_ENTERED, new JSONArray().put(ImmutableMap.of("Valid", false)));
+//					setButtonEnables(false);
+//				}
+			//}
+			
+		}
+		
+	}
+	
+	@RequiredArgsConstructor(suppressConstructorProperties=true)
+	public class ClearHistoryOnClickListener implements View.OnClickListener {
+		@Override
+		public void onClick(View v) {
+			final List<String> history = getHistory();
+			history.clear();
+			SwanUtils.updateListViewWithList(PatternActivity.this, getHistory_list(), history);
 			
 		}
 		

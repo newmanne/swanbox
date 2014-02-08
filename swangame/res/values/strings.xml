@@ -10,5 +10,7 @@
     <string name="green">GREEN</string>
     <string name="ipAddress">IP ADDRESS OF SERVER</string>
     <string name="connect">CONNECT</string>
-
+    <string name="instructions">Press the buttons in the order you see on the screen!</string>
+	<string name="history">HISTORY</string>
+	<string name="clear">Clear History</string>
 </resources>
