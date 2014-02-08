@@ -42,12 +42,12 @@ public class ConnectActivity extends SwanRoboActivity {
 					@Override
 					public void onConnectCompleted(Exception ex, SocketIOClient client) {
 						if (ex != null) {
-							Log.e(LogTags.SOCKIT_IO, "Connection error", ex);
+							Log.e(LogTags.SOCKET_IO, "Connection error", ex);
 							SwanUtils.toastOnUI(ConnectActivity.this, ex.toString(), Toast.LENGTH_LONG);
 							connectButton.setEnabled(true);
 							return;
 						}
-						Log.d(LogTags.SOCKIT_IO, "Connected to " + serverAddress);
+						Log.d(LogTags.SOCKET_IO, "Connected to " + serverAddress);
 						socketIO.setClient(client);
 						socketIO.init();
 						startActivityForResult(new Intent(ConnectActivity.this, PatternActivity.class), 0);

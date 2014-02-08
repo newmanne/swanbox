@@ -26,7 +26,7 @@ public class SocketIOState {
 			
 			@Override
 			public void onDisconnect(Exception ex) {
-				Log.d(LogTags.SOCKIT_IO, "Disconnected");
+				Log.d(LogTags.SOCKET_IO, "Disconnected");
 				final Intent intent = new Intent(activityProvider.getActivity(), ConnectActivity.class);
 				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				activityProvider.getActivity().startActivity(intent);

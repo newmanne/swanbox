@@ -39,7 +39,7 @@ public class PatternActivity extends SwanRoboActivity {
 	String blue;
 	
 	@Getter
-	List<Button> patternButtons = Lists.newArrayList(redButton, greenButton, blueButton);
+	List<Button> patternButtons;
 	
 	@Getter
 	@Setter
@@ -55,6 +55,9 @@ public class PatternActivity extends SwanRoboActivity {
 		redButton.setOnClickListener(new UpdatePatternOnClickListener(red));
 		greenButton.setOnClickListener(new UpdatePatternOnClickListener(green));
 		blueButton.setOnClickListener(new UpdatePatternOnClickListener(blue));
+		
+		patternButtons = Lists.newArrayList(redButton, greenButton, blueButton);
+		
 		socketIO.getClient().on("PATTERN_REQUESTED_FROM_CLIENT", new EventCallback() {
 			
 			@Override
@@ -101,6 +104,7 @@ public class PatternActivity extends SwanRoboActivity {
 					pattern.remove(0); //pop
 				} else {
 					socketIO.getClient().emit(PATTERN_ENTERED, new JSONArray().put(ImmutableMap.of("Valid", false)));
+					setButtonEnables(false);
 				}
 			}
 			
