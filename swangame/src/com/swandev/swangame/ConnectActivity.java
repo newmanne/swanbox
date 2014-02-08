@@ -1,10 +1,10 @@
 package com.swandev.swangame;
 
+import java.net.MalformedURLException;
+
 import roboguice.inject.ContentView;
 import roboguice.inject.InjectView;
-import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -13,9 +13,6 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.inject.Inject;
-import com.koushikdutta.async.http.AsyncHttpClient;
-import com.koushikdutta.async.http.socketio.ConnectCallback;
-import com.koushikdutta.async.http.socketio.SocketIOClient;
 
 @ContentView(R.layout.connect_screen)
 public class ConnectActivity extends SwanRoboActivity {
@@ -29,7 +26,6 @@ public class ConnectActivity extends SwanRoboActivity {
 	@InjectView(R.id.nickname)
 	EditText nicknameField;
 
-
 	@Inject
 	SocketIOState socketIO;
 
@@ -40,25 +36,16 @@ public class ConnectActivity extends SwanRoboActivity {
 
 			@Override
 			public void onClick(View v) {
-				// TODO: validate malformed url
 				// TODO: validate nickname not blank
 				connectButton.setEnabled(false);
 				final String serverAddress = ipAddressField.getText().toString();
 				final String nickname = nicknameField.getText().toString();
-				SocketIOClient.connect(AsyncHttpClient.getDefaultInstance(), serverAddress, new ConnectCallback() {
-					@Override
-					public void onConnectCompleted(Exception ex, SocketIOClient client) {
-						if (ex != null) {
-							Log.e(LogTags.SOCKET_IO, "Connection error", ex);
-							SwanUtils.toastOnUI(ConnectActivity.this, ex.toString(), Toast.LENGTH_LONG);
-							connectButton.setEnabled(true);
-							return;
-						}
-						Log.d(LogTags.SOCKET_IO, "Connected to " + serverAddress);
-						socketIO.init(client, nickname);
-						startActivityForResult(new Intent(ConnectActivity.this, PatternActivity.class), 0);
-					}
-				});
+				try {
+					socketIO.connect(serverAddress, nickname);
+				} catch (MalformedURLException e) {
+					SwanUtils.toastOnUI(ConnectActivity.this, "Malformed server address " + serverAddress, Toast.LENGTH_LONG);
+					connectButton.setEnabled(true);
+				}
 			}
 		});
 	}
