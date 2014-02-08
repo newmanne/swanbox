@@ -34,8 +34,4 @@ public class SwanRoboActivity extends RoboActivity {
 		activityProvider.setActivity(null);
 	}
 	
-	protected void onElectedHost() {
-		
-	}
-	
 }

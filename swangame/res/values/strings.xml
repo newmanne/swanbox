@@ -13,5 +13,7 @@
     <string name="nickname">NICKNAME</string>
     <string name="defaultNickname">blinky</string>  
     <string name="startGame">Start Game</string>  
-
+    <string name="instructions">Press the buttons in the order you see on the screen!</string>
+	<string name="history">HISTORY</string>
+	<string name="clear">Clear History</string>
 </resources>

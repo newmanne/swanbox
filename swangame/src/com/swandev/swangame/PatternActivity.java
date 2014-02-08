@@ -14,7 +14,9 @@ import roboguice.inject.InjectView;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.ListView;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -38,6 +40,17 @@ public class PatternActivity extends SwanRoboActivity {
 	@InjectView(R.id.startGame)
 	Button startGame;
 
+	@InjectView(R.id.clear)
+	Button clearButton;
+
+	@Getter
+	@InjectView(R.id.history_list)
+	ListView history_list;
+
+	@Getter
+	@Setter
+	List<String> history = Lists.newArrayList();
+
 	@Getter
 	List<Button> patternButtons;
 
@@ -55,19 +68,19 @@ public class PatternActivity extends SwanRoboActivity {
 		redButton.setOnClickListener(new UpdatePatternOnClickListener(red));
 		greenButton.setOnClickListener(new UpdatePatternOnClickListener(green));
 		blueButton.setOnClickListener(new UpdatePatternOnClickListener(blue));
-
+		clearButton.setOnClickListener(new ClearHistoryOnClickListener());
 		patternButtons = Lists.newArrayList(redButton, greenButton, blueButton);
-
-/*		socketIO.getClient().on("PATTERN_REQUESTED_FROM_CLIENT", new EventCallback() {
-
+		startGame.setVisibility(socketIO.isHost() ? View.VISIBLE : View.GONE);
+		startGame.setOnClickListener(new OnClickListener() {
+			
 			@Override
-			public void onEvent(JSONArray args, Acknowledge ack) {
-				setButtonEnables(true);
-				setPattern((List<String>) args.opt(0));
+			public void onClick(View arg0) {
+				socketIO.getClient().emit(SocketIOEvents.GAME_STARTED);
+				startGame.setVisibility(View.GONE);
+				startGame.setEnabled(false);
 			}
 		});
-		socketIO.getClient().emitEvent("PATTERN_REQUESTED_FROM_SERVER");
-*/	}
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -95,7 +108,17 @@ public class PatternActivity extends SwanRoboActivity {
 
 		@Override
 		public void onClick(View v) {
-			final List<String> pattern = getPattern();
+			final List<String> history = getHistory();
+			history.add(patternString);
+
+			// Define a new Adapter
+			// First parameter - Context
+			// Second parameter - Layout for the row
+			// Third parameter - ID of the TextView to which the data is written
+			pattern.remove(0); // pop
+
+			SwanUtils.updateListViewWithList(PatternActivity.this, getHistory_list(), history);
+
 			if (pattern.isEmpty()) {
 				socketIO.getClient().emit(PATTERN_ENTERED, new JSONArray().put(ImmutableMap.of("Valid", true, "Extension", patternString)));
 				setButtonEnables(false);
@@ -112,10 +135,17 @@ public class PatternActivity extends SwanRoboActivity {
 		}
 
 	}
-	
-	@Override
-	protected void onElectedHost() {
-		startGame.setVisibility(View.VISIBLE);
+
+	@RequiredArgsConstructor(suppressConstructorProperties = true)
+	public class ClearHistoryOnClickListener implements View.OnClickListener {
+		@Override
+		public void onClick(View v) {
+			final List<String> history = getHistory();
+			history.clear();
+			SwanUtils.updateListViewWithList(PatternActivity.this, getHistory_list(), history);
+
+		}
+
 	}
 
 }

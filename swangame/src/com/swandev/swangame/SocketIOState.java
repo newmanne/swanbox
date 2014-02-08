@@ -33,7 +33,7 @@ public class SocketIOState {
 		return getClient() != null && getClient().isConnected();
 	}
 
-	public void connect(final String serverAddress, String nickname) throws MalformedURLException {
+	public void connect(final String serverAddress, final String nickname) throws MalformedURLException {
 		final SocketIO socketIO = new SocketIO(serverAddress);
 		this.client = socketIO;
 		client.connect(new IOCallback() {
@@ -66,7 +66,7 @@ public class SocketIOState {
 			@Override
 			public void onConnect() {
 				Log.d(LogTags.SOCKET_IO, "Connected to " + serverAddress);
-				activityProvider.getActivity().startActivity(new Intent(activityProvider.getActivity(), PatternActivity.class));
+				client.emit(SocketIOEvents.NICKNAME_SET, nickname);
 			}
 
 			@Override
@@ -75,7 +75,11 @@ public class SocketIOState {
 				if (event.equals(SocketIOEvents.ELECTED_HOST)) {
 					host = true;
 					Log.d(LogTags.SOCKET_IO, "Elected host");
-					activityProvider.getActivity().onElectedHost();
+					activityProvider.getActivity().startActivity(new Intent(activityProvider.getActivity(), PatternActivity.class));
+				} else if (event.equals(SocketIOEvents.ELECTED_CLIENT)) {
+					activityProvider.getActivity().startActivity(new Intent(activityProvider.getActivity(), PatternActivity.class));
+				} else if (event.equals(SocketIOEvents.PATTERN_REQUESTED)) {
+					
 				}
 			}
 		});
