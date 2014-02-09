@@ -51,8 +51,35 @@ socket.on('start_screen', function(){
     change();
 });
 
-function display_sequence(){
-    
+socket.on('start_sequence', function (stringSequence) {
+    display_sequence(stringSequence);
+});
+
+function flicker(){
+    c.style.background ="#000000";
+}
+
+function display_sequence(colour_sequence){
+    if (!colour_sequence.length == 0){
+        d.innerHTML = "empty string error";
+        return;
+    }
+    var color = colour_sequence.shift();
+    var x = {
+        'red':"#FF0000",
+        'green':"#00FF00",
+        'blue':"#0000FF"
+    }
+    c.sytle.background = x[color]
+
+    if (colour_sequence.length == 0{
+        d.innerHTML = "string done";
+        socket.emit('finished_sequence');
+        return;
+    }
+    setTimeout(flicker, 550);
+    setTimeout(function(){game_one(display_sequence);}, 600);
+
 }
 
 function change(){
