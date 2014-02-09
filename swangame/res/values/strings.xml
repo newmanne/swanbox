@@ -17,4 +17,6 @@
 	<string name="history">HISTORY</string>
 	<string name="clear">Clear History</string>
 	<string name="submit">Submit</string>
+	<string name="playPatterns">Play Patterns!</string>
+	<string name="playChatroom">Play Chatroom!</string>
 </resources>

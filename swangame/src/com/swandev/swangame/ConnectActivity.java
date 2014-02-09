@@ -1,9 +1,12 @@
 package com.swandev.swangame;
 
+import io.socket.IOAcknowledge;
+
 import java.net.MalformedURLException;
 
 import roboguice.inject.ContentView;
 import roboguice.inject.InjectView;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
@@ -28,20 +31,75 @@ public class ConnectActivity extends SwanRoboActivity {
 
 	@Inject
 	SocketIOState socketIO;
+	
+	@InjectView(R.id.patternsButton)
+	Button patternsButton;
+	
+	@InjectView(R.id.chatroomButton)
+	Button chatroomButton;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		connectButton.setOnClickListener(new OnClickListener() {
+		patternsButton.setVisibility(View.GONE);
+		chatroomButton.setVisibility(View.GONE);
+		
+		socketIO.on(SocketIOEvents.ELECTED_CLIENT, new EventCallback(){
 
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				final String gameTitle = (String) args[0];
+				if (gameTitle.equals("patterns")){
+					enablePatternsButton();
+				} else if (gameTitle.equals("chatroom")){
+					enableChatroomButton();
+				} else {
+					//TODO: handle the case where the host crashed
+				}
+				socketIO.setHost(false);
+			}
+			
+		});
+		
+		socketIO.on(SocketIOEvents.ELECTED_HOST, new EventCallback(){
+
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+					enablePatternsButton();
+					enableChatroomButton();
+					socketIO.setHost(true);
+			}
+			
+		});
+		
+		patternsButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				socketIO.getClient().emit(SocketIOEvents.PLAYING_PATTERNS);
+				activityProvider.getActivity().startActivity( 
+						new Intent(activityProvider.getActivity(), PatternActivity.class));
+			}
+		});
+		
+		chatroomButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				socketIO.getClient().emit(SocketIOEvents.PLAYING_CHATROOM);
+				activityProvider.getActivity().startActivity( 
+						new Intent(activityProvider.getActivity(), ChatActivity.class));
+			}
+		});
+		
+		connectButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				// TODO: validate nickname not blank
 				connectButton.setEnabled(false);
 				final String serverAddress = ipAddressField.getText().toString();
 				final String nickname = nicknameField.getText().toString();
+				
 				try {
-					socketIO.connect(serverAddress, nickname);
+					socketIO.connect(serverAddress, nickname);					
 				} catch (MalformedURLException e) {
 					SwanUtils.toastOnUI(ConnectActivity.this, "Malformed server address " + serverAddress, Toast.LENGTH_LONG);
 					connectButton.setEnabled(true);
@@ -64,5 +122,15 @@ public class ConnectActivity extends SwanRoboActivity {
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
+	
+	public void enablePatternsButton(){
+		patternsButton.setVisibility(View.VISIBLE);
+		patternsButton.setEnabled(true);
+	}
 
+	public void enableChatroomButton() {
+		chatroomButton.setVisibility(View.VISIBLE);
+		chatroomButton.setEnabled(true);		
+	}
+	
 }

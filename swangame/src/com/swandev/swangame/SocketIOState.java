@@ -8,6 +8,7 @@ import io.socket.SocketIOException;
 import java.net.MalformedURLException;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import org.json.JSONObject;
 
@@ -28,19 +29,25 @@ public class SocketIOState {
 
 	@Inject
 	EventEmitter eventEmitter;
-	
+
+	@Getter
+	@Setter
+	private String nickname;
+
 	public void on(String eventName, EventCallback callback) {
 		eventEmitter.on(eventName, callback);
 	}
 
 	@Getter
+	@Setter
 	private boolean host = false;
 
 	public boolean isConnected() {
 		return getClient() != null && getClient().isConnected();
 	}
 
-	public void connect(final String serverAddress, final String nickname) throws MalformedURLException {
+	public void connect(final String serverAddress, final String nickname)
+			throws MalformedURLException {
 		final SocketIO socketIO = new SocketIO(serverAddress);
 		this.client = socketIO;
 		client.connect(new IOCallback() {
@@ -65,8 +72,11 @@ public class SocketIOState {
 			@Override
 			public void onDisconnect() {
 				Log.d(LogTags.SOCKET_IO, "Disconnected");
-				final Intent intent = new Intent(activityProvider.getActivity(), ConnectActivity.class);
-				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				final Intent intent = new Intent(
+						activityProvider.getActivity(), ConnectActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+						);
+				eventEmitter.clear();
 				activityProvider.getActivity().startActivity(intent);
 			}
 
@@ -74,18 +84,7 @@ public class SocketIOState {
 			public void onConnect() {
 				Log.d(LogTags.SOCKET_IO, "Connected to " + serverAddress);
 				client.emit(SocketIOEvents.NICKNAME_SET, nickname);
-				eventEmitter.on(SocketIOEvents.PLAYER_JOINED, new EventCallback() {
-
-					@Override
-					public void onEvent(IOAcknowledge ack, Object... args) {
-						final String role = (String) args[0];
-						if (role.equals("host")) {
-							host = true;
-						}
-						Log.d(LogTags.SOCKET_IO, "Elected host");
-						activityProvider.getActivity().startActivity(new Intent(activityProvider.getActivity(), PatternActivity.class));
-					}
-				});
+				SocketIOState.this.setNickname(nickname);
 			}
 
 			@Override
