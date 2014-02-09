@@ -26,6 +26,13 @@ public class SocketIOState {
 	@Inject
 	ActivityProvider activityProvider;
 
+	@Inject
+	EventEmitter eventEmitter;
+	
+	public void on(String eventName, EventCallback callback) {
+		eventEmitter.on(eventName, callback);
+	}
+
 	@Getter
 	private boolean host = false;
 
@@ -67,20 +74,23 @@ public class SocketIOState {
 			public void onConnect() {
 				Log.d(LogTags.SOCKET_IO, "Connected to " + serverAddress);
 				client.emit(SocketIOEvents.NICKNAME_SET, nickname);
+				eventEmitter.on(SocketIOEvents.PLAYER_JOINED, new EventCallback() {
+
+					@Override
+					public void onEvent(IOAcknowledge ack, Object... args) {
+						final String role = (String) args[0];
+						if (role.equals("host")) {
+							host = true;
+						}
+						Log.d(LogTags.SOCKET_IO, "Elected host");
+						activityProvider.getActivity().startActivity(new Intent(activityProvider.getActivity(), PatternActivity.class));
+					}
+				});
 			}
 
 			@Override
-			public void on(String event, IOAcknowledge arg1, Object... arg2) {
-				// TODO: implement a decent event listener
-				if (event.equals(SocketIOEvents.ELECTED_HOST)) {
-					host = true;
-					Log.d(LogTags.SOCKET_IO, "Elected host");
-					activityProvider.getActivity().startActivity(new Intent(activityProvider.getActivity(), PatternActivity.class));
-				} else if (event.equals(SocketIOEvents.ELECTED_CLIENT)) {
-					activityProvider.getActivity().startActivity(new Intent(activityProvider.getActivity(), PatternActivity.class));
-				} else if (event.equals(SocketIOEvents.PATTERN_REQUESTED)) {
-					
-				}
+			public void on(String event, IOAcknowledge ack, Object... arguments) {
+				eventEmitter.onEvent(event, ack, arguments);
 			}
 		});
 

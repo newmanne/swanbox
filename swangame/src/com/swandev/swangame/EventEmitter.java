@@ -6,7 +6,9 @@ import java.util.List;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.inject.Singleton;
 
+@Singleton
 public class EventEmitter {
 
 	ListMultimap<String, EventCallback> callbacks = ArrayListMultimap.create();
