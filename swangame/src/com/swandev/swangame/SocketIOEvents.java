@@ -10,12 +10,13 @@ public class SocketIOEvents {
 	//Patterns Events
 	public static final String PLAYING_PATTERNS = "playing_patterns";
 	public static final String PATTERN_REQUESTED = "pattern_requested";
-	public static final String PATTERN_ENTERED = "pattern_entered";	
 	
 	//Chatroom Events
 	public static final String PLAYING_CHATROOM = "playing_chatroom";
 	public static final String USER_MESSAGE = "user_message";
 	public static final String MESSAGE_TO_ROOM = "msg_to_room";
 	
+	public static final String PATTERN_ENTERED = "pattern_entered";
+	public static final String GAME_OVER = "game_over";
 
 }

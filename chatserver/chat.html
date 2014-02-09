@@ -47,7 +47,7 @@ socket.on('error', function (e) {
 });
 
 socket.on('start_screen', function(){
-    alert('GOT START SCREEN')
+  
     change();
 });
 
@@ -56,12 +56,12 @@ socket.on('start_sequence', function (stringSequence) {
 });
 
 function flicker(){
+    var c = document.getElementById('test');
     c.style.background ="#000000";
 }
 
 function display_sequence(colour_sequence){
-    if (!colour_sequence.length == 0){
-        d.innerHTML = "empty string error";
+    if (colour_sequence.length == 0){
         return;
     }
     var color = colour_sequence.shift();
@@ -69,16 +69,16 @@ function display_sequence(colour_sequence){
         'red':"#FF0000",
         'green':"#00FF00",
         'blue':"#0000FF"
-    }
-    c.sytle.background = x[color]
+    };
+    var c = document.getElementById('test');
+    c.style.background = x[color];
 
-    if (colour_sequence.length == 0{
-        d.innerHTML = "string done";
+    if (colour_sequence.length == 0){
         socket.emit('finished_sequence');
         return;
     }
-    setTimeout(flicker, 550);
-    setTimeout(function(){game_one(display_sequence);}, 600);
+    setTimeout(flicker, 950);
+    setTimeout(function(){display_sequence(colour_sequence);}, 1000);
 
 }
 
@@ -86,7 +86,7 @@ function change(){
    $('#test').show();
    $('#game_txt').text('Get ready');
    var c = document.getElementById('test');
-   c.style.background = '#FF0000';
+   c.style.background = '#000000';
 }
 
 function message (from, msg) {
@@ -98,6 +98,7 @@ $(function () {
     socket.emit('screen_set');
     //socket.emit('test')
 
+    $('#change').hide()
     $('#send-message').submit(function () {
 	    message('me', $('#message').val());
 	    socket.emit('user message', $('#message').val());

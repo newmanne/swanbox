@@ -15,6 +15,7 @@ class ChatNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
     colourSequence = list()
     colour = ['red', 'blue', 'green']
     screenSocket = None
+    roundrobin = 0;
 
     def on_test(self):
         print 'test works'
@@ -24,11 +25,15 @@ class ChatNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         ChatNamespace.screenSocket = self.socket
         
 
-        update_sequence()
-        self.emit_to_whisper('start_screen', ChatNamespace.screenSocket)
-        self.emit_to_whisper('start_sequence', ChatNamespace.colourSequence)
+
+        # print 'SET SCREEN'        
+        # self.emit_to_whisper('start_screen', ChatNamespace.screenSocket)
+        # print 'UPDATE_SEQUENCE'
+        # self.update_sequence()
+        # self.emit_to_whisper('start_sequence', ChatNamespace.screenSocket,ChatNamespace.colourSequence)
+
         #self.emit('start_screen')
-        print "SET SCREEN"
+        
 
     def on_nickname_set(self, nickname):
         self.request['nicknames'].append(nickname)
@@ -38,6 +43,7 @@ class ChatNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         self.broadcast_event('nicknames', self.request['nicknames'])
         if (ChatNamespace.count == 0):
             self.emit('player_joined', 'host')
+            print 'Host is', nickname
         else:
             self.emit('player_joined', 'client')
         ChatNamespace.count = ChatNamespace.count + 1
@@ -52,28 +58,36 @@ class ChatNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
     def on_game_started(self):
         #logic code for game here
         print 'GAME HAS STARTED'
-        update_sequence()
-        print 'SENDING SEQUENCE', ChatNamespace.colourSequence
-        emit_to_whisper('start_screen', ChatNamespace.screenSocket)
-        self.emit('pattern_requested', ChatNamespace.colourSequence)
+        self.emit_to_whisper('start_screen', ChatNamespace.screenSocket)
+        print 'UPDATE_SEQUENCE'
+        self.update_sequence()
+        self.emit_to_whisper('start_sequence', ChatNamespace.screenSocket,ChatNamespace.colourSequence)
 
 
     def on_pattern_entered(self, valid):
         print valid
-        if valid:
-            addToSequence = random.choice(ChatNamespace.colour)
-            ChatNamespace.colourSequence.append(addToSequence)
-            self.emit('pattern_requested', ChatNamespace.colourSequence)
+        if valid[0]:
+            #self.emit_to_whisper('start_screen', ChatNamespace.screenSocket)
+            self.update_sequence()
+            self.emit_to_whisper('start_sequence', ChatNamespace.screenSocket,ChatNamespace.colourSequence)
         else:
-            #exit the game (send to screen to stop)
-            pass
+            print 'Client got sequence wrong'
+            self.emit('game_over')
 
 
     def on_finished_sequence(self):
         #code to determine player
-        self.emit('pattern_requested', ChatNamespace.colourSequence)
+        
+        
+        #self.emit('pattern_requested', ChatNamespace.colourSequence) 
+        
 
-
+        if ChatNamespace.roundrobin == len(ChatNamespace.player_sessid):
+            ChatNamespace.roundrobin = 0;
+        print 'SENDING PATTERN TO', ChatNamespace.player_sessid[ChatNamespace.roundrobin][1]
+        self.emit_to_whisper('pattern_requested', ChatNamespace.player_sessid[ChatNamespace.roundrobin][0], ChatNamespace.colourSequence)
+        
+        ChatNamespace.roundrobin = ChatNamespace.roundrobin + 1
 
     def recv_disconnect(self):
         # Remove nickname from the list.
@@ -107,9 +121,10 @@ class ChatNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 
 
 
-    def update_sequence():
+    def update_sequence(self):
         addToSequence = random.choice(ChatNamespace.colour)
         ChatNamespace.colourSequence.append(addToSequence)
+        print ChatNamespace.colourSequence
 
 
     def emit_to_whisper(self, event, target, *args):
