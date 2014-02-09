@@ -8,5 +8,6 @@ public class SocketIOEvents {
 	public static final String ELECTED_CLIENT = "elected_client";
 	public static final String PATTERN_REQUESTED = "pattern_requested";
 	public static final String PATTERN_ENTERED = "pattern_entered";
+	public static final String GAME_OVER = "game_over";
 
 }

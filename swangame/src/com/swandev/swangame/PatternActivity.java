@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
@@ -73,25 +74,33 @@ public class PatternActivity extends SwanRoboActivity {
 				socketIO.getClient().emit(SocketIOEvents.GAME_STARTED);
 				startGame.setVisibility(View.GONE);
 				startGame.setEnabled(false);
-				socketIO.on(SocketIOEvents.PATTERN_REQUESTED, new EventCallback() {
-
-					@Override
-					public void onEvent(IOAcknowledge ack, Object... args) {
-						final List<String> newPattern = Lists.newArrayList();
-						JSONArray jsonArrray = (JSONArray) args[0];
-						for (int i = 0; i < jsonArrray.length(); i++) {
-							try {
-								newPattern.add(jsonArrray.getString(i));
-							} catch (JSONException e) {
-								e.printStackTrace();
-							}
-						}
-						setPattern(newPattern);
-						setButtonEnables(true);
-					}
-				});
 			}
 		});
+		socketIO.on(SocketIOEvents.PATTERN_REQUESTED, new EventCallback() {
+
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				final List<String> newPattern = Lists.newArrayList();
+				JSONArray jsonArrray = (JSONArray) args[0];
+				for (int i = 0; i < jsonArrray.length(); i++) {
+					try {
+						newPattern.add(jsonArrray.getString(i));
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+				setPattern(newPattern);
+				setButtonEnables(true);
+			}
+		});
+		socketIO.on(SocketIOEvents.GAME_OVER, new EventCallback() {
+			
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				SwanUtils.toastOnUI(PatternActivity.this, "womp womp", Toast.LENGTH_LONG);
+			}
+		});
+
 	}
 
 	@Override
