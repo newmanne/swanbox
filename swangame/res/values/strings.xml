@@ -16,4 +16,5 @@
     <string name="instructions">Press the buttons in the order you see on the screen!</string>
 	<string name="history">HISTORY</string>
 	<string name="clear">Clear History</string>
+	<string name="submit">Submit</string>
 </resources>
