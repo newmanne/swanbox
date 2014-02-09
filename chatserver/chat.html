@@ -47,6 +47,7 @@ socket.on('error', function (e) {
 });
 
 socket.on('start_screen', function(){
+    alert('GOT START SCREEN')
     change();
 });
 
@@ -68,17 +69,6 @@ function message (from, msg) {
 // DOM manipulation
 $(function () {
     socket.emit('screen_set');
-    $('#set-nickname').submit(function (ev) {
-        socket.emit('nickname', $('#nick').val(), function (set) {
-            if (!set) {
-                clear();
-                return $('#chat').addClass('nickname-set');
-            }
-            $('#nickname-err').css('visibility', 'visible');
-        });
-        return false;
-    });
-
     //socket.emit('test')
 
     $('#send-message').submit(function () {
