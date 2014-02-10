@@ -9,6 +9,7 @@
     <string name="blue">blue</string>
     <string name="green">green</string>
     <string name="ipAddress">IP ADDRESS OF SERVER</string>
+    <string name="port">PORT</string>
     <string name="connect">CONNECT</string>
     <string name="nickname">NICKNAME</string>
     <string name="defaultNickname">blinky</string>  
@@ -17,4 +18,7 @@
 	<string name="history">HISTORY</string>
 	<string name="clear">Clear History</string>
 	<string name="submit">Submit</string>
+	<string name="playPatterns">Play Patterns!</string>
+	<string name="playChatroom">Play Chatroom!</string>
+	<string name="waiting">Waiting for Host to start the game…</string>
 </resources>

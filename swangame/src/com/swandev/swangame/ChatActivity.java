@@ -1,6 +1,10 @@
 package com.swandev.swangame;
 
+import io.socket.IOAcknowledge;
+
 import java.util.List;
+
+import org.json.JSONArray;
 
 import roboguice.inject.ContentView;
 import roboguice.inject.InjectView;
@@ -12,6 +16,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import com.google.common.collect.Lists;
+import com.google.inject.Inject;
 
 @ContentView(R.layout.chat_layout)
 public class ChatActivity extends SwanRoboActivity {
@@ -25,14 +30,16 @@ public class ChatActivity extends SwanRoboActivity {
 	@InjectView(R.id.user_text)
 	EditText userTextField;
 
+	@Inject
+	SocketIOState socketIO;
+
 	List<ChatLogAdapter.LogPair> chat_history = Lists.newArrayList();
-	String nickname;
+	private String nickname;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		nickname = "w";
-		// nickname = SocketIOState.get_nickname();
+		nickname = socketIO.getNickname();
 
 		submit_button.setOnClickListener(new OnClickListener() {
 			@Override
@@ -40,11 +47,31 @@ public class ChatActivity extends SwanRoboActivity {
 				final String chat_text = userTextField.getText().toString();
 				userTextField.getText().clear();
 
-				chat_history
-						.add(new ChatLogAdapter.LogPair(nickname, chat_text));
+				socketIO.getClient().emit(SocketIOEvents.USER_MESSAGE,
+						new JSONArray().put(chat_text));
+			}
+		});
 
-				chat_log.setAdapter(new ChatLogAdapter(ChatActivity.this,
-						chat_history));
+		socketIO.on(SocketIOEvents.MESSAGE_TO_ROOM, new EventCallback() {
+
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				final String username = (String) args[0];
+				final String entry = (String) args[1];
+				
+				runOnUiThread(new Runnable() {
+		            @Override
+		            public void run() {
+		            	String nameToDisplay = username;
+						if (username.equals(nickname)) {
+							nameToDisplay = "me";
+						}
+						chat_history.add(new ChatLogAdapter.LogPair(nameToDisplay, entry));
+
+						chat_log.setAdapter(new ChatLogAdapter(ChatActivity.this,
+								chat_history));
+		            }
+		        });
 			}
 		});
 	}

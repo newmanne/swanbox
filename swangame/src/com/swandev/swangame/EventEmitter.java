@@ -23,5 +23,9 @@ public class EventEmitter {
 	public void on(String event, EventCallback callback) {
 		callbacks.put(event, callback);
 	}
+	
+	public void clear(){
+		callbacks.clear();
+	}
 
 }

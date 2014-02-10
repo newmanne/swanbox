@@ -10,21 +10,35 @@
         android:text="@string/ipAddress" />
 
     <EditText
-        android:inputType="text"
+        android:inputType="phone"
         android:id="@+id/ipAddress"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/ipAddressLabel" />
+ 
+     <TextView
+        android:id="@+id/portLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ipAddress"
+        android:text="@string/port" />
+        
+    <EditText
+        android:inputType="phone"
+        android:id="@+id/port"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/portLabel" />
 
     <TextView
         android:id="@+id/nicknameLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/ipAddress"
+        android:layout_below="@+id/port"
         android:text="@string/nickname" />
 
     <EditText
-        android:text="@string/defaultNickname"
+        android:hint="@string/defaultNickname"
         android:inputType="text"
         android:id="@+id/nickname"
         android:layout_width="wrap_content"
@@ -37,5 +51,26 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/nickname"
         android:text="@string/connect" />
+    
+    <Button
+        android:id = "@+id/patternsButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/connectButton"
+        android:text="@string/playPatterns" />
+    
+    <Button
+        android:id = "@+id/chatroomButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/patternsButton"
+        android:text="@string/playChatroom" />
+    
+    <TextView
+        android:id="@+id/waitingForGame"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/chatroomButton"
+        android:text="@string/waiting" />        
 
 </RelativeLayout>
