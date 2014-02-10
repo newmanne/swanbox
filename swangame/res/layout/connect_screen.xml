@@ -38,7 +38,7 @@
         android:text="@string/nickname" />
 
     <EditText
-        android:text="@string/defaultNickname"
+        android:hint="@string/defaultNickname"
         android:inputType="text"
         android:id="@+id/nickname"
         android:layout_width="wrap_content"
