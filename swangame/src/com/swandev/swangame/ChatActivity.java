@@ -56,17 +56,22 @@ public class ChatActivity extends SwanRoboActivity {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
-				String username = (String) args[0];
+				final String username = (String) args[0];
 				final String entry = (String) args[1];
+				
+				runOnUiThread(new Runnable() {
+		            @Override
+		            public void run() {
+		            	String nameToDisplay = username;
+						if (username.equals(nickname)) {
+							nameToDisplay = "me";
+						}
+						chat_history.add(new ChatLogAdapter.LogPair(nameToDisplay, entry));
 
-				if (username.equals(nickname)) {
-					username = "me";
-				}
-				chat_history.add(new ChatLogAdapter.LogPair(username, entry));
-
-				chat_log.setAdapter(new ChatLogAdapter(ChatActivity.this,
-						chat_history));
-
+						chat_log.setAdapter(new ChatLogAdapter(ChatActivity.this,
+								chat_history));
+		            }
+		        });
 			}
 		});
 	}

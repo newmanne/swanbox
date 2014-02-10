@@ -25,6 +25,7 @@
             </intent-filter>
         </activity>
         <activity android:name="com.swandev.swangame.PatternActivity"></activity>
+        <activity android:name="com.swandev.swangame.ChatActivity"></activity>
     </application>
 
 </manifest>

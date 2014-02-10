@@ -98,6 +98,7 @@ public class PatternActivity extends SwanRoboActivity {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				SwanUtils.toastOnUI(PatternActivity.this, "womp womp", Toast.LENGTH_LONG);
+				finish();
 			}
 		});
 
