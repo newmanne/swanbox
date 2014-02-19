@@ -23,12 +23,15 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
     def on_test(self):
         print 'test works'
 
+#Connection/Disconnection Code
+################################################################################################
+################################################################################################
+################################################################################################
     def on_screen_set(self):
         print 'Screen has connected'
         self.request['nicknames'].append('Screen')
         self.socket.session['nickname'] = 'Screen'
         SwanNamespace.screenSocket = self.socket
-    
 
     def on_nickname(self, nickname):
         self.request['nicknames'].append(nickname)
@@ -49,7 +52,6 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         if (SwanNamespace.count == 0):
             SwanNamespace.hostSocket = self.socket
             self.emit('elected_host')
-            webbrowser.open('http://localhost:8080/chat.html')
             print 'Host is', nickname
         else:
             print 'client is', nickname
@@ -62,21 +64,68 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         SwanNamespace.player_sessid.append([self.socket, nickname])
         print SwanNamespace.player_sessid
 
+    def recv_disconnect(self):
+        # Remove nickname from the list.
+        nickname = self.socket.session['nickname']
+        SwanNamespace.player_sessid.remove([self.socket, nickname])
+        #broadcast to everyone that someone has disconnected
+        self.broadcast_event('announcement', '%s has disconnected' % nickname)
+        self.broadcast_event('nicknames', self.request['nicknames'])
+        if nickname != 'Screen':
+            self.request['nicknames'].remove(nickname)
+            SwanNamespace.count = SwanNamespace.count - 1
+
+        print "%s Has Disconnected" % nickname
+        print SwanNamespace.player_sessid
+
+        #elect a new host
+        if self.socket == SwanNamespace.hostSocket:
+            if SwanNamespace.count != 0:
+                self.emit_to_socket('elected_host', SwanNamespace.player_sessid[0][0])
+                SwanNamespace.hostSocket = SwanNamespace.player_sessid[0][0]
+                self.broadcast_event('announcement', '%s is now the host' % SwanNamespace.player_sessid[0][1])
+            else:
+                print "Waiting for Host to Connect"
+        self.disconnect(silent=True)
+
+################################################################################################
+################################################################################################
+################################################################################################
+
+
+
+
+#Definition of Events for Applications to start
+################################################################################################
+################################################################################################
+################################################################################################
+
     def on_start_chatroom (self):
         print 'Starting Chatroom'
+        webbrowser.open('http://localhost:8080/chat.html')
         self.broadcast_event('playing_chatroom')
 
     def on_start_patterns (self):
         print 'Starting Patterns'
+        webbrowser.open('http://localhost:8080/chat.html')
         self.broadcast_event('playing_patterns')
 
 
-    #start the pattern game
+################################################################################################
+################################################################################################
+################################################################################################
+
+
+# Patterns Game Related Events:
+################################################################################################
+################################################################################################
+################################################################################################
+
     def on_game_started(self):
         #logic code for game here
         #game_player_sessid = list(player_sessid)
         print 'GAME HAS STARTED'
-        self.emit_to_socket('start_screen', SwanNamespace.screenSocket)
+        self.emit_to_socket('game_begin', SwanNamespace.screenSocket, self.request['nicknames'])
         print 'UPDATE_SEQUENCE'
         self.update_sequence()
         self.emit_to_socket('start_sequence', SwanNamespace.screenSocket,SwanNamespace.colourSequence)
@@ -110,30 +159,21 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         
         SwanNamespace.roundrobin = SwanNamespace.roundrobin + 1
 
-    def recv_disconnect(self):
-        # Remove nickname from the list.
-        nickname = self.socket.session['nickname']
-        self.request['nicknames'].remove(nickname)
-        SwanNamespace.player_sessid.remove([self.socket, nickname])
-        #broadcast to everyone that someone has disconnected
-        self.broadcast_event('announcement', '%s has disconnected' % nickname)
-        self.broadcast_event('nicknames', self.request['nicknames'])
-        if nickname != 'Screen':
-            SwanNamespace.count = SwanNamespace.count - 1
 
-        print "%s Has Disconnected" % nickname
-        print SwanNamespace.player_sessid
+    def update_sequence(self):
+        addToSequence = random.choice(SwanNamespace.colour)
+        SwanNamespace.colourSequence.append(addToSequence)
+        print SwanNamespace.colourSequence
 
-        #elect a new host
-        if self.socket == SwanNamespace.hostSocket:
-            if SwanNamespace.count != 0:
-                self.emit_to_socket('elected_host', SwanNamespace.player_sessid[0][0])
-                SwanNamespace.hostSocket = SwanNamespace.player_sessid[0][0]
-                self.broadcast_event('announcement', '%s is now the host' % SwanNamespace.player_sessid[0][1])
-            else:
-                print "Waiting for Host to Connect"
-        self.disconnect(silent=True)
+################################################################################################
+################################################################################################
+################################################################################################
+    
 
+#Chatroom Related Events
+################################################################################################
+################################################################################################
+################################################################################################
     def on_user_message(self, msg):
         # tmp = msg.split("/")
         # if len(tmp) >= 2:
@@ -152,17 +192,20 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         self.broadcast_event('msg_to_room',self.socket.session['nickname'], msg[0])
         #self.emit_to_room(self, 'main_room' 'msg_to_room',
         #self.socket.session['nickname'], msg)
-        
+
+
+################################################################################################
+################################################################################################
+################################################################################################        
+
+
+#Misc Functions
+################################################################################################
+################################################################################################
+################################################################################################ 
 
     def recv_message(self, message):
         print "PING!!!", message
-
-
-    def update_sequence(self):
-        addToSequence = random.choice(SwanNamespace.colour)
-        SwanNamespace.colourSequence.append(addToSequence)
-        print SwanNamespace.colourSequence
-
 
     def emit_to_socket(self, event, target, *args):
         pkt = dict(type="event",
@@ -175,6 +218,10 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
                 socket.send_packet(pkt)
                 break
 
+
+################################################################################################
+################################################################################################
+################################################################################################ 
 
 class Application(object):
     def __init__(self):
@@ -227,3 +274,9 @@ if __name__ == '__main__':
     SocketIOServer(('0.0.0.0', 8080), Application(),
         resource="socket.io", policy_server=True,
         policy_listener=('0.0.0.0', 10843)).serve_forever()
+
+
+
+
+#Notes: 
+#- Should the game server determine the next player or the server?
