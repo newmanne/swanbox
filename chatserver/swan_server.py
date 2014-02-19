@@ -6,7 +6,6 @@ from socketio.namespace import BaseNamespace
 from socketio.mixins import RoomsMixin, BroadcastMixin
 
 import random
-import webbrowser
 
 
 class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
@@ -102,12 +101,10 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 
     def on_start_chatroom (self):
         print 'Starting Chatroom'
-        webbrowser.open('http://localhost:8080/chat.html')
         self.broadcast_event('playing_chatroom')
 
     def on_start_patterns (self):
         print 'Starting Patterns'
-        webbrowser.open('http://localhost:8080/chat.html')
         self.broadcast_event('playing_patterns')
 
 
