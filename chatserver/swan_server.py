@@ -29,7 +29,7 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 ################################################################################################
     def on_screen_set(self):
         print 'Screen has connected'
-        self.request['nicknames'].append('Screen')
+       # self.request['nicknames'].append('Screen')
         self.socket.session['nickname'] = 'Screen'
         SwanNamespace.screenSocket = self.socket
 
@@ -102,12 +102,12 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 
     def on_start_chatroom (self):
         print 'Starting Chatroom'
-        webbrowser.open('http://localhost:8080/chat.html')
+        
         self.broadcast_event('playing_chatroom')
 
     def on_start_patterns (self):
         print 'Starting Patterns'
-        webbrowser.open('http://localhost:8080/chat.html')
+        
         self.broadcast_event('playing_patterns')
 
 
@@ -126,16 +126,12 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         #game_player_sessid = list(player_sessid)
         print 'GAME HAS STARTED'
         self.emit_to_socket('game_begin', SwanNamespace.screenSocket, self.request['nicknames'])
-        print 'UPDATE_SEQUENCE'
-        self.update_sequence()
-        self.emit_to_socket('start_sequence', SwanNamespace.screenSocket,SwanNamespace.colourSequence)
-
+        
 
     def on_pattern_entered(self, valid):
         print valid
         if valid[0]:
-            self.update_sequence()
-            self.emit_to_socket('start_sequence', SwanNamespace.screenSocket,SwanNamespace.colourSequence)
+            self.emit_to_socket('update_sequence', SwanNamespace.screenSocket)
         else:
             print 'Wrong sequence from:', self.socket.session['nickname']
             self.broadcast_event('game_over')
@@ -149,15 +145,13 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
             # SwanNamespace.roundrobin = SwanNamespace.roundrobin + 1
             
 
-    def on_finished_sequence(self):
-        #code to determine player
-        
-        if SwanNamespace.roundrobin >= len(SwanNamespace.player_sessid):
-            SwanNamespace.roundrobin = 0;
-        print 'SENDING PATTERN TO', SwanNamespace.player_sessid[SwanNamespace.roundrobin][1]
-        self.emit_to_socket('pattern_requested', SwanNamespace.player_sessid[SwanNamespace.roundrobin][0], SwanNamespace.colourSequence)
-        
-        SwanNamespace.roundrobin = SwanNamespace.roundrobin + 1
+    def on_finished_sequence(self, player_name, colour_sequence):
+        print 'Finished Sequence'
+        for index, nickname in enumerate(SwanNamespace.player_sessid):
+            print nickname
+            #check if nickname is the same as in the list
+            print 'Sending Sequence', colour_sequence, 'to', SwanNamespace.player_sessid[index][0]
+            self.emit_to_socket('pattern_requested', SwanNamespace.player_sessid[index][0], colour_sequence)
 
 
     def update_sequence(self):
