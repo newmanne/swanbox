@@ -71,6 +71,7 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         #broadcast to everyone that someone has disconnected
         self.broadcast_event('announcement', '%s has disconnected' % nickname)
         self.broadcast_event('nicknames', self.request['nicknames'])
+        
         if nickname != 'Screen':
             self.request['nicknames'].remove(nickname)
             SwanNamespace.count = SwanNamespace.count - 1
@@ -102,12 +103,10 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 
     def on_start_chatroom (self):
         print 'Starting Chatroom'
-        
         self.broadcast_event('playing_chatroom')
 
     def on_start_patterns (self):
         print 'Starting Patterns'
-        
         self.broadcast_event('playing_patterns')
 
 
@@ -148,10 +147,12 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
     def on_finished_sequence(self, player_name, colour_sequence):
         print 'Finished Sequence'
         for index, nickname in enumerate(SwanNamespace.player_sessid):
-            print nickname
+            print nickname[1]
+            print player_name
             #check if nickname is the same as in the list
-            print 'Sending Sequence', colour_sequence, 'to', SwanNamespace.player_sessid[index][0]
-            self.emit_to_socket('pattern_requested', SwanNamespace.player_sessid[index][0], colour_sequence)
+            if nickname[1] == player_name:
+                print 'Sending Sequence', colour_sequence, 'to', SwanNamespace.player_sessid[index][0]
+                self.emit_to_socket('pattern_requested', SwanNamespace.player_sessid[index][0], colour_sequence)
 
 
     def update_sequence(self):
@@ -225,6 +226,14 @@ class Application(object):
         self.request = {
             'nicknames': [], 
         }
+
+        self.config = {
+            'heartbeat_timeout': 5,
+            'close_timeout': 6,
+            'heartbeat_interval': 1,
+        }
+
+
 
     def __call__(self, environ, start_response):
         path = environ['PATH_INFO'].strip('/')
