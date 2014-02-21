@@ -6,7 +6,6 @@ from socketio.namespace import BaseNamespace
 from socketio.mixins import RoomsMixin, BroadcastMixin
 
 import random
-import webbrowser
 
 
 class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
