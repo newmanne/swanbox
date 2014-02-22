@@ -127,22 +127,14 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         
 
     def on_pattern_entered(self, valid):
-        print valid
-        if valid[0]:
+        if valid:
             self.emit_to_socket('update_sequence', SwanNamespace.screenSocket)
-        else:
+        if not valid[0]:
             print 'Wrong sequence from:', self.socket.session['nickname']
-            self.broadcast_event('game_over')
+            self.emit_to_socket('invalid_pattern',SwanNamespace.screenSocket, self.socket.session['nickname'])
+            #self.broadcast_event('game_over')
 
-            # del SwanNamespace.player_sessid[SwanNamespace.roundrobin]
-            # if SwanNamespace.roundrobin == len(SwanNamespace.player_sessid):
-            #     SwanNamespace.roundrobin = 0;
-            # print 'SENDING PATTERN TO', SwanNamespace.player_sessid[SwanNamespace.roundrobin][1]
-            # self.emit_to_socket('pattern_requested', Chatamespace.player_sessid[SwanNamespace.roundrobin][0], SwanNamespace.colourSequence)
             
-            # SwanNamespace.roundrobin = SwanNamespace.roundrobin + 1
-            
-
     def on_finished_sequence(self, player_name, colour_sequence):
         print 'Finished Sequence'
         for index, nickname in enumerate(SwanNamespace.player_sessid):
@@ -153,11 +145,8 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
                 print 'Sending Sequence', colour_sequence, 'to', SwanNamespace.player_sessid[index][0]
                 self.emit_to_socket('pattern_requested', SwanNamespace.player_sessid[index][0], colour_sequence)
 
-
-    def update_sequence(self):
-        addToSequence = random.choice(SwanNamespace.colour)
-        SwanNamespace.colourSequence.append(addToSequence)
-        print SwanNamespace.colourSequence
+    def on_game_over(self):
+        self.broadcast_event('game_over')
 
 ################################################################################################
 ################################################################################################
@@ -193,6 +182,26 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 ################################################################################################        
 
 
+#Mailbox Implementation
+################################################################################################
+################################################################################################
+################################################################################################
+
+    def on_swan_broadcast(self, event, args):
+        print "BROADCASTING EVENT ", event, " WITH ARGS ", args 
+        self.broadcast_event('event', args)
+
+    def on_swan_emit(self, nickname, event, args):
+        print "SENDING TO ", nickname, " EVENT ", event, " WITH ARGS ", args
+        emit_to_nickname(nickname, event, args)
+
+
+################################################################################################
+################################################################################################
+################################################################################################
+
+
+
 #Misc Functions
 ################################################################################################
 ################################################################################################
@@ -200,6 +209,17 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 
     def recv_message(self, message):
         print "PING!!!", message
+
+
+
+    def emit_to_nickname(self, name, event, args):
+        if name == "Screen":
+            self.emit_to_socket(event, SwanNamespace.screenSocket, args)
+        else:
+            for index, nickname in enumerate(SwanNamespace.player_sessid):
+                #check if nickname is the same as in the list
+                if nickname[1] == name:
+                    self.emit_to_socket(event, SwanNamespace.player_sessid[index][0], args)
 
     def emit_to_socket(self, event, target, *args):
         pkt = dict(type="event",
