@@ -193,8 +193,10 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 
     def on_swan_emit(self, nickname, event, args):
         print "SENDING TO ", nickname, " EVENT ", event, " WITH ARGS ", args
-        emit_to_nickname(nickname, event, args)
+        self.emit_to_nickname(nickname, event, args)
 
+    def on_swan_get_nicknames(self):
+        self.emit_to_socket("swan_get_nicknames", self.socket, self.request['nicknames'])
 
 ################################################################################################
 ################################################################################################
